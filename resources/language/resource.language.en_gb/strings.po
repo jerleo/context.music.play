@@ -1,0 +1,21 @@
+# Kodi Media Center language file
+# Addon Name: Context Play
+# Addon id: context.music.play
+msgid ""
+msgstr ""
+
+msgctxt "#32001"
+msgid "Play this album"
+msgstr ""
+
+msgctxt "#32002"
+msgid "Play this artist"
+msgstr ""
+
+msgctxt "#32003"
+msgid "Shuffle this album"
+msgstr ""
+
+msgctxt "#32004"
+msgid "Shuffle this artist"
+msgstr ""
