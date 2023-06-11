@@ -33,11 +33,9 @@
     <summary lang="en_GB">Play or shuffle songs of an artist/album using the context menu</summary>
     <description lang="en_GB">Context menu entries for playing or shuffling songs of the selected artist</description>
     <license>GNU GENERAL PUBLIC LICENSE. Version 3, 29 June 2007</license>
-<!--
-    <forum></forum>
--->
     <source>https://github.com/jerleo/context.music.play</source>
 <!--
+    <forum></forum>
     <assets>
         <icon></icon>
         <fanart></fanart>

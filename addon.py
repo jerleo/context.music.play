@@ -4,6 +4,51 @@ import xbmc
 import xbmcgui
 # import web_pdb
 
+def get_artist(tag):
+
+    artistId = get_artist_of_item(tag)
+
+    json_rpc = {
+        "id": 1,
+        "jsonrpc": "2.0",
+        "method": "AudioLibrary.GetArtistDetails",
+        "params": {
+            "artistid": artistId
+        }
+    }
+
+    query = xbmc.executeJSONRPC(json.dumps(json_rpc))
+    response = json.loads(query)
+
+    result = response.get("result", {})
+    result = result.get("artistdetails", {})
+
+    return result.get("artist", {})
+
+def get_artist_of_item(tag):
+
+    item_id = tag.getDbId()
+    item_type = tag.getMediaType()
+
+    json_rpc = {
+        "jsonrpc": "2.0",
+        "method": "AudioLibrary.Get{}Details".format(item_type.title()),
+        "params": {
+            "properties": ["artistid"],
+            item_type + "id": item_id
+        },
+        "id": 1
+    }
+
+    query = xbmc.executeJSONRPC(json.dumps(json_rpc))
+    response = json.loads(query)
+
+    result = response.get("result", {})
+    result = result.get(item_type + "details", {})
+    result = result.get("artistid")
+
+    return result[0] if len(result) > 0 else None
+
 def get_songs(artist, album=None):
 
     xbmc.log("Getting songs for {}...".format(artist), xbmc.LOGINFO)
@@ -15,7 +60,33 @@ def get_songs(artist, album=None):
     }
 
     if album is not None:
-        filter = {
+        filter = add_album_filter(filter, album)
+
+    json_rpc = {
+        "id": 1,
+        "jsonrpc": "2.0",
+        "method": "AudioLibrary.GetSongs",
+        "params": {
+            "properties": [
+                "file"
+            ],
+            "filter": filter,
+            "sort": {
+                "method": "originaldate",
+                "order": "ascending"
+            }
+        }
+    }
+
+    query = xbmc.executeJSONRPC(json.dumps(json_rpc))
+    response = json.loads(query)
+    result = response.get("result", {})
+
+    return result.get("songs", {})
+
+def add_album_filter(filter, album):
+
+    return {
             "and": [
                 filter,
                 {
@@ -24,30 +95,7 @@ def get_songs(artist, album=None):
                     "value": album
                 }
             ]
-        }
-
-    jsonRPC = {
-        "jsonrpc": "2.0",
-        "method": "AudioLibrary.GetSongs",
-        "params": {
-            "properties": [
-                "file"           
-            ],
-            "filter": filter,
-            "sort": {
-                "method": "originaldate",
-                "order": "ascending"
-            }
-        },
-        "id": 1
     }
-        
-#   web_pdb.set_trace()
-    query = xbmc.executeJSONRPC(json.dumps(jsonRPC))
-    response = json.loads(query)
-    result = response.get("result", {})
-
-    return result.get("songs", {})
 
 def get_playlist(songs):
 
@@ -63,7 +111,12 @@ def get_playlist(songs):
 if __name__ == '__main__':
 
     tag = sys.listitem.getMusicInfoTag()
-    artist = tag.getArtist()
+
+#   Does not always work: e. g. Matchbox 20 vs. Matchbox Twenty
+#   artist = tag.getArtist()
+#   web_pdb.set_trace()
+
+    artist = get_artist(tag)
 
     if sys.argv[1].endswith("artist"):
         songs = get_songs(artist)
@@ -82,4 +135,7 @@ if __name__ == '__main__':
         xbmc.Player().play(playlist)
 
     else:
-        xbmcgui.Dialog().notification("Context Play", "Songs could not be found.")
+        xbmcgui.Dialog().notification(
+            "Context Play", 
+            "Songs could not be found.",
+            xbmcgui.NOTIFICATION_WARNING)
